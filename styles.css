@@ -1,0 +1,70 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#menu h2 {
+  font-size: 22px;
+  margin: 0;
+  text-align: center;
+}
+
+#menu button {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#menu button:hover {
+  background-color: #0056b3;
+}
+
+#joystick {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 125px); /* Desplazado para que no quede detrás del menú */
+  transform: translate(-50%, -50%);
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#velocidades {
+  position: absolute;
+  top: 80%;
+  left: calc(50% + 125px); /* Desplazado para que no quede detrás del menú */
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+#velocidades span {
+  font-weight: bold;
+  font-size: 18px;
+}
