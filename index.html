@@ -1,4 +1,3 @@
-index.html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,6 +6,7 @@ index.html
   <title>Control de Robot con Joystick Virtual</title>
   <script src="https://cdn.jsdelivr.net/npm/roslib/build/roslib.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/nipplejs/dist/nipplejs.min.js"></script>
+  <script src="scripts.js" defer></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,138 +17,21 @@ index.html
   </div>
 
   <div id="joystick"></div>
+  
   <div id="velocidades">
-    <p><strong>Velocidades actuales:</strong></p>
-    <p>Velocidad Lineal: <span id="vel_lineal">0.0</span> m/s</p>
-    <p>Velocidad Angular: <span id="vel_angular">0.0</span> rad/s</p>
+    <div class="velocidad-item">
+      <label>Velocidad Lineal: </label>
+      <span><span id="vel_lineal">0.0</span> m/s</span>
+    </div>
+    <div class="velocidad-item">
+      <label>Velocidad Angular: </label>
+      <span><span id="vel_angular">0.0</span> rad/s</span>
+    </div>
   </div>
 
-  <script>
-    // Inicialización del ROS
-    const ros = new ROSLIB.Ros({
-      url: 'ws://localhost:9090'  // Cambia 'localhost' si rosbridge corre en otra IP
-    });
-
-    ros.on('connection', function() {
-      console.log('Conectado a ROSBridge');
-    });
-
-    ros.on('error', function(error) {
-      console.error('Error conectando a ROSBridge:', error);
-    });
-
-    ros.on('close', function() {
-      console.log('Conexión a ROSBridge cerrada');
-    });
-
-    // Definir el topic cmd_vel para enviar velocidades
-    const cmdVelTopic = new ROSLIB.Topic({
-      ros: ros,
-      name: '/cmd_vel',
-      messageType: 'geometry_msgs/msg/Twist'
-    });
-
-    // Suscribirse al topic /odom para obtener las velocidades
-    const odomTopic = new ROSLIB.Topic({
-      ros: ros,
-      name: '/odom',
-      messageType: 'nav_msgs/msg/Odometry'
-    });
-
-    // Configurar sensibilidad
-    const maxVelLineal = 1.0;   // Velocidad máxima lineal en m/s
-    const maxVelAngular = 1.0;  // Velocidad máxima angular en rad/s
-    const noiseThreshold = 0.01; // Umbral para eliminar ruido en velocidades
-
-    // Referencias a los elementos HTML
-    const velLinealSpan = document.getElementById('vel_lineal');
-    const velAngularSpan = document.getElementById('vel_angular');
-    const joystickDiv = document.getElementById('joystick');
-    const velocidadesDiv = document.getElementById('velocidades');
-    const manualBtn = document.getElementById('manualBtn');
-    const automaticoBtn = document.getElementById('automaticoBtn');
-
-    // Función para redondear a 0 si el valor es menor que el umbral de ruido
-    function filtrarRuido(valor, umbral) {
-      return Math.abs(valor) < umbral ? 0 : valor;
-    }
-
-    // Modo Manual
-    manualBtn.addEventListener('click', () => {
-      joystickDiv.style.display = 'block';
-      velocidadesDiv.style.display = 'block';
-      console.log('Modo Manual Activado');
-    });
-
-    // Modo Automático
-    automaticoBtn.addEventListener('click', () => {
-      joystickDiv.style.display = 'none';
-      velocidadesDiv.style.display = 'none';
-      activarModoAutomatico();
-      console.log('Modo Automático Activado');
-    });
-
-    // Crear el joystick usando nipplejs
-    const joystick = nipplejs.create({
-      zone: joystickDiv,
-      mode: 'static',
-      position: { left: '50%', top: '50%' },
-      color: 'blue'
-    });
-
-    // Enviar velocidad en función de los movimientos del joystick
-    joystick.on('move', (event, data) => {
-      const velLineal = data.distance / 100 * maxVelLineal * Math.sin(data.angle.radian);
-      const velAngular = data.distance / 100 * maxVelAngular * Math.cos(data.angle.radian);
-
-      const mensajeTwist = new ROSLIB.Message({
-        linear: { x: velLineal, y: 0.0, z: 0.0 },
-        angular: { x: 0.0, y: 0.0, z: velAngular }
-      });
-
-      cmdVelTopic.publish(mensajeTwist);
-      console.log('Velocidad enviada:', mensajeTwist);
-    });
-
-    // Detener el robot cuando el joystick regresa al centro
-    joystick.on('end', () => {
-      const mensajeTwist = new ROSLIB.Message({
-        linear: { x: 0.0, y: 0.0, z: 0.0 },
-        angular: { x: 0.0, y: 0.0, z: 0.0 }
-      });
-      cmdVelTopic.publish(mensajeTwist);
-      console.log('Robot detenido');
-    });
-
-    // Actualizar las velocidades visualizadas en pantalla desde /odom
-    odomTopic.subscribe((message) => {
-      let velLineal = message.twist.twist.linear.x;  // Velocidad lineal en x
-      let velAngular = message.twist.twist.angular.z;  // Velocidad angular en z
-
-      // Filtrar ruido en velocidades
-      velLineal = filtrarRuido(velLineal, noiseThreshold);
-      velAngular = filtrarRuido(velAngular, noiseThreshold);
-
-      // Actualizar la información en pantalla
-      velLinealSpan.textContent = velLineal.toFixed(2);
-      velAngularSpan.textContent = velAngular.toFixed(2);
-
-      console.log('Velocidades recibidas:', {
-        lineal: velLineal,
-        angular: velAngular
-      });
-    });
-
-    // Función del Modo Automático
-    function activarModoAutomatico() {
-      const mensajeTwist = new ROSLIB.Message({
-        linear: { x: 0.5, y: 0.0, z: 0.0 },
-        angular: { x: 0.0, y: 0.0, z: 0.2 }
-      });
-
-      cmdVelTopic.publish(mensajeTwist);
-      console.log('Velocidad Automática enviada:', mensajeTwist);
-    }
-  </script>
+  <div id="camera-view">
+    <h2>Vista de la Cámara</h2>
+    <img id="camera-image" src="" alt="Imagen de la cámara">
+  </div>
 </body>
 </html>

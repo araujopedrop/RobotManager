@@ -18,6 +18,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  z-index: 10;
 }
 
 #menu h2 {
@@ -44,27 +45,60 @@ body {
 #joystick {
   width: 200px;
   height: 200px;
-  position: absolute;
-  top: 50%;
-  left: calc(50% + 125px); /* Desplazado para que no quede detrás del menú */
-  transform: translate(-50%, -50%);
+  position: fixed;
+  top: 500px;
+  left: 340px;
   background-color: #f0f0f0;
   border-radius: 50%;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 5;
 }
 
 #velocidades {
-  position: absolute;
-  top: 80%;
-  left: calc(50% + 125px); /* Desplazado para que no quede detrás del menú */
-  transform: translate(-50%, -50%);
+  position: fixed;
+  top: 760px; /* Separar más del joystick */
+  left: 340px;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Espacio entre filas */
+  font-size: 18px;
   text-align: center;
 }
 
-#velocidades span {
+.velocidad-item {
+  display: flex;
+  justify-content: space-between; /* Separar label y valor */
+  align-items: center;
+  width: 100%; /* Ocupa todo el ancho del contenedor */
+  white-space: nowrap; /* Evita saltos de línea */
+}
+
+.velocidad-item label {
   font-weight: bold;
-  font-size: 18px;
+  margin-right: 5px; /* Añade espacio después del ":" */
+}
+
+.velocidad-item span {
+  font-weight: normal;
+  text-align: right;
+}
+
+#camera-view {
+  position: fixed;
+  top: 100px;
+  right: 0;
+  width: 40%;
+  text-align: center;
+  background-color: #fff;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+}
+
+#camera-image {
+  width: 100%;
+  height: auto;
+  border: 2px solid #ccc;
 }
