@@ -139,3 +139,30 @@ const ros = new ROSLIB.Ros({
     });
   });
   
+  const configuracionBtn = document.getElementById('configuracionBtn');
+  const configModal = document.getElementById('configModal');
+  const closeModal = document.getElementById('closeModal');
+  const saveConfigBtn = document.getElementById('saveConfigBtn');
+
+
+// Abrir el modal al presionar "Configuración"
+configuracionBtn.addEventListener('click', () => {
+  configModal.style.display = 'flex';
+});
+
+// Cerrar el modal al presionar la "X"
+closeModal.addEventListener('click', () => {
+  configModal.style.display = 'none';
+});
+
+// Guardar los parámetros al presionar "Guardar"
+saveConfigBtn.addEventListener('click', () => {
+  const maxVelLineal = parseFloat(document.getElementById('maxVelLineal').value);
+  const maxVelAngular = parseFloat(document.getElementById('maxVelAngular').value);
+
+  // Actualizar las variables globales o enviarlas al robot
+  console.log('Nuevos Parámetros:', { maxVelLineal, maxVelAngular });
+
+  // Cerrar el modal
+  configModal.style.display = 'none';
+});
