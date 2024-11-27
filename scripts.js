@@ -1,5 +1,6 @@
-// Inicialización del ROS
-const ros = new ROSLIB.Ros({
+  // ************************************** ROS initialization and connection **************************************
+
+  const ros = new ROSLIB.Ros({
     url: 'ws://localhost:9090'  // Cambia 'localhost' si rosbridge corre en otra IP
   });
   
@@ -22,57 +23,72 @@ const ros = new ROSLIB.Ros({
     messageType: 'geometry_msgs/msg/Twist'
   });
   
-  // Definir el topic de la cámara
-  const imageTopic = new ROSLIB.Topic({
-    ros: ros,
-    name: '/camera/image_raw',
-    messageType: 'sensor_msgs/msg/Image'
-  });
-  
-  // Crear un elemento de imagen para mostrar la imagen de la cámara
-  const imgElement = document.getElementById('camera-image');
-  
-  // Función para convertir los datos de la imagen de ROS a una imagen HTML
-  function convertImageDataToBase64(imageData) {
-    const base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(imageData)));
-    return 'data:image/jpeg;base64,' + base64String;
-  }
-  
-  // Suscribirse al topic de la cámara
-  imageTopic.subscribe((message) => {
-    // Convertir los datos de la imagen en base64
-    const base64Image = convertImageDataToBase64(message.data);
-  
-    // Actualizar la imagen en el HTML
-    imgElement.src = base64Image;
-    console.log('Imagen recibida y mostrada en la web');
-  });
-  
   // Suscribirse al topic /odom para obtener las velocidades
   const odomTopic = new ROSLIB.Topic({
     ros: ros,
     name: '/odom',
     messageType: 'nav_msgs/msg/Odometry'
   });
+
+  // Actualizar las velocidades visualizadas en pantalla desde /odom
+  odomTopic.subscribe((message) => {
+    let velLineal = message.twist.twist.linear.x;  // Velocidad lineal en x
+    let velAngular = message.twist.twist.angular.z;  // Velocidad angular en z
   
+    // Filtrar ruido en velocidades
+    velLineal = filtrarRuido(velLineal, noiseThreshold);
+    velAngular = filtrarRuido(velAngular, noiseThreshold);
+  
+    // Actualizar la información en pantalla
+    velLinealSpan.textContent = velLineal.toFixed(2);
+    velAngularSpan.textContent = velAngular.toFixed(2);
+  
+    /*
+    console.log('Velocidades recibidas:', {
+      lineal: velLineal,
+      angular: velAngular
+    });
+    */
+  });
+
+  
+
+  // ************************************** DECLARATIONS **************************************
+
   // Configurar sensibilidad
-  const maxVelLineal = 1.0;   // Velocidad máxima lineal en m/s
-  const maxVelAngular = 1.0;  // Velocidad máxima angular en rad/s
-  const noiseThreshold = 0.01; // Umbral para eliminar ruido en velocidades
+  let maxVelLineal = 1.0;    // m/s
+  let maxVelAngular = 1.0;   // rad/s
+  const noiseThreshold = 0.01; // 
   
-  // Referencias a los elementos HTML
+  // HTML objects
   const velLinealSpan = document.getElementById('vel_lineal');
   const velAngularSpan = document.getElementById('vel_angular');
   const joystickDiv = document.getElementById('joystick');
   const velocidadesDiv = document.getElementById('velocidades');
   const manualBtn = document.getElementById('manualBtn');
   const automaticoBtn = document.getElementById('automaticoBtn');
+  const configuracionBtn = document.getElementById('configuracionBtn');
+  const configModal = document.getElementById('configModal');
+  const closeModal = document.getElementById('closeModal');
+  const saveConfigBtn = document.getElementById('saveConfigBtn');
+
+  // Crear el joystick usando nipplejs
+  const joystick = nipplejs.create({
+    zone: joystickDiv,
+    mode: 'static',
+    position: { left: '50%', top: '50%' },
+    color: 'blue'
+  });
   
   // Función para redondear a 0 si el valor es menor que el umbral de ruido
   function filtrarRuido(valor, umbral) {
     return Math.abs(valor) < umbral ? 0 : valor;
   }
   
+
+
+  // ************************************** BUTTOMS EVENTS **************************************
+
   // Modo Manual
   manualBtn.addEventListener('click', () => {
     joystickDiv.style.display = 'block';
@@ -84,16 +100,8 @@ const ros = new ROSLIB.Ros({
   automaticoBtn.addEventListener('click', () => {
     joystickDiv.style.display = 'none';
     //velocidadesDiv.style.display = 'none';
-    //activarModoAutomatico();
+    //activarModoAutomatico(); TODO
     console.log('Modo Automático Activado');
-  });
-  
-  // Crear el joystick usando nipplejs
-  const joystick = nipplejs.create({
-    zone: joystickDiv,
-    mode: 'static',
-    position: { left: '50%', top: '50%' },
-    color: 'blue'
   });
   
   // Enviar velocidad en función de los movimientos del joystick
@@ -102,8 +110,8 @@ const ros = new ROSLIB.Ros({
     const velAngular = data.distance / 100 * maxVelAngular * Math.cos(data.angle.radian);
   
     const mensajeTwist = new ROSLIB.Message({
-      linear: { x: velLineal, y: 0.0, z: 0.0 },
-      angular: { x: 0.0, y: 0.0, z: velAngular }
+      linear: { x: velLineal*2, y: 0.0, z: 0.0 },
+      angular: { x: 0.0, y: 0.0, z: velAngular*2 }
     });
   
     cmdVelTopic.publish(mensajeTwist);
@@ -120,49 +128,24 @@ const ros = new ROSLIB.Ros({
     console.log('Robot detenido');
   });
   
-  // Actualizar las velocidades visualizadas en pantalla desde /odom
-  odomTopic.subscribe((message) => {
-    let velLineal = message.twist.twist.linear.x;  // Velocidad lineal en x
-    let velAngular = message.twist.twist.angular.z;  // Velocidad angular en z
-  
-    // Filtrar ruido en velocidades
-    velLineal = filtrarRuido(velLineal, noiseThreshold);
-    velAngular = filtrarRuido(velAngular, noiseThreshold);
-  
-    // Actualizar la información en pantalla
-    velLinealSpan.textContent = velLineal.toFixed(2);
-    velAngularSpan.textContent = velAngular.toFixed(2);
-  
-    console.log('Velocidades recibidas:', {
-      lineal: velLineal,
-      angular: velAngular
-    });
+  // Abrir el modal al presionar "Configuración"
+  configuracionBtn.addEventListener('click', () => {
+    configModal.style.display = 'flex';
   });
-  
-  const configuracionBtn = document.getElementById('configuracionBtn');
-  const configModal = document.getElementById('configModal');
-  const closeModal = document.getElementById('closeModal');
-  const saveConfigBtn = document.getElementById('saveConfigBtn');
 
+  // Cerrar el modal al presionar la "X"
+  closeModal.addEventListener('click', () => {
+    configModal.style.display = 'none';
+  });
 
-// Abrir el modal al presionar "Configuración"
-configuracionBtn.addEventListener('click', () => {
-  configModal.style.display = 'flex';
-});
+  // Guardar los parámetros al presionar "Guardar"
+  saveConfigBtn.addEventListener('click', () => {
+    maxVelLineal = parseFloat(document.getElementById('maxVelLineal').value);
+    maxVelAngular = parseFloat(document.getElementById('maxVelAngular').value);
 
-// Cerrar el modal al presionar la "X"
-closeModal.addEventListener('click', () => {
-  configModal.style.display = 'none';
-});
+    // Actualizar las variables globales o enviarlas al robot
+    console.log('Nuevos Parámetros:', { maxVelLineal, maxVelAngular });
 
-// Guardar los parámetros al presionar "Guardar"
-saveConfigBtn.addEventListener('click', () => {
-  const maxVelLineal = parseFloat(document.getElementById('maxVelLineal').value);
-  const maxVelAngular = parseFloat(document.getElementById('maxVelAngular').value);
-
-  // Actualizar las variables globales o enviarlas al robot
-  console.log('Nuevos Parámetros:', { maxVelLineal, maxVelAngular });
-
-  // Cerrar el modal
-  configModal.style.display = 'none';
-});
+    // Cerrar el modal
+    configModal.style.display = 'none';
+  });
