@@ -149,3 +149,59 @@
     // Cerrar el modal
     configModal.style.display = 'none';
   });
+
+
+  // ************************************** SERVER CONNECTION **************************************
+
+
+  saveConfigBtn.addEventListener('click', async () => {
+    const linear_vel = parseFloat(document.getElementById('maxVelLineal').value);
+    const angular_vel = parseFloat(document.getElementById('maxVelAngular').value);
+
+    console.log({ linear_vel, angular_vel });
+
+
+    try {
+        const response = await fetch('http://localhost:5000/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ linear_vel, angular_vel }) // Campos correctos
+        });
+
+        if (response.ok) {
+            console.log('Configuración guardada en la base de datos');
+        } else {
+            console.error('Error al guardar la configuración');
+        }
+    } catch (error) {
+        console.error('Error en la solicitud:', error);
+    }
+
+    configModal.style.display = 'none';
+});
+
+
+
+window.addEventListener('load', async () => {
+  try {
+      const response = await fetch('http://localhost:5000/config');
+      if (response.ok) {
+          const config = await response.json();
+          if (config) {
+              console.log('Configuración cargada:', config);
+              document.getElementById('maxVelLineal').value = config.linear_vel;
+              document.getElementById('maxVelAngular').value = config.angular_vel;
+
+              maxVelLineal = config.linear_vel;
+              maxVelAngular = config.angular_vel;
+          }
+      } else {
+          console.error('Error al cargar la configuración:', response.status);
+      }
+  } catch (error) {
+      console.error('Error en la solicitud:', error);
+  }
+});
+
+
+  
