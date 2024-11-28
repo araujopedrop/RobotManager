@@ -31,7 +31,7 @@
 - Additional dependencies:
   - Node.js
   - Websockets
-  - WebBroser
+  - WebBrowser
   - MongoDB
   - Flask
   - Docker (opcional)
