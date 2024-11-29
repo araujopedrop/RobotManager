@@ -30,8 +30,8 @@
 - Python Version: 3.8 or higher
 - Additional dependencies:
   - Node.js
-  - Websockets
-  - WebBrowser
+  - Rosbridge Websockets
+  - Web Video Server
   - MongoDB
   - Flask
   - Docker (opcional)
