@@ -1,6 +1,6 @@
-# RobotManager
+# RobotManager (DEPRECATED)
 
-**Brief Description:**  App web which commands simulated robots.
+**Brief Description:**  App web which commands simulated robots. Moved to robot_manager
 
 ## 🚀 Features
 
